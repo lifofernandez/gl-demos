@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="client-nojs">
+<head>
+<meta charset="UTF-8"/>
+<title>Programming OpenGL in Linux: GLX and Xlib - OpenGL Wiki</title>
+<script>document.documentElement.className = document.documentElement.className.replace( /(^|\s)client-nojs(\s|$)/, "$1client-js$2" );</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"Programming_OpenGL_in_Linux:_GLX_and_Xlib","wgTitle":"Programming OpenGL in Linux: GLX and Xlib","wgCurRevisionId":11419,"wgRevisionId":11419,"wgArticleId":1318,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Linux"],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"Programming_OpenGL_in_Linux:_GLX_and_Xlib","wgRelevantArticleId":1318,"wgRequestId":"WLmh3mjsGP4AAHZBR9wAAAAW","wgIsProbablyEditable":false,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgWikiEditorEnabledModules":{"toolbar":true,"dialogs":true,"preview":true,"publish":false},"wgCategoryTreePageCategoryOptions":"{\"mode\":0,\"hideprefix\":20,\"showcount\":true,\"namespaces\":false}"});mw.loader.implement("user.options",function($,jQuery,require,module){mw.user.options.set({"variant":"en"});});mw.loader.implement("user.tokens",function ( $, jQuery, require, module ) {
+mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});/*@nomin*/;
+
+});mw.loader.load(["mediawiki.page.startup","skins.vector.js"]);});</script>
+<link rel="stylesheet" href="/opengl/wiki_opengl/load.php?debug=false&amp;lang=en&amp;modules=mediawiki.legacy.commonPrint%2Cshared%7Cmediawiki.raggett%2CsectionAnchor%7Cmediawiki.skinning.interface%7Cskins.vector.styles&amp;only=styles&amp;skin=vector"/>
+<meta name="ResourceLoaderDynamicStyles" content=""/>
+<link rel="stylesheet" href="/opengl/wiki_opengl/load.php?debug=false&amp;lang=en&amp;modules=site&amp;only=styles&amp;skin=vector"/>
+<script async="" src="/opengl/wiki_opengl/load.php?debug=false&amp;lang=en&amp;modules=startup&amp;only=scripts&amp;skin=vector"></script>
+<meta name="generator" content="MediaWiki 1.27.1"/>
+<link rel="shortcut icon" href="/favicon.ico"/>
+<link rel="search" type="application/opensearchdescription+xml" href="/opengl/wiki_opengl/opensearch_desc.php" title="OpenGL Wiki (en)"/>
+<link rel="EditURI" type="application/rsd+xml" href="//www.khronos.org/opengl/wiki_opengl/api.php?action=rsd"/>
+<link rel="alternate" type="application/atom+xml" title="OpenGL Wiki Atom feed" href="/opengl/wiki_opengl/index.php?title=Special:RecentChanges&amp;feed=atom"/>
+<script type='text/javascript' src='https://beta.opengl.org/ads/www/delivery/spcjs.php?id=1&amp;target=_blank&amp;charset=UTF-8'></script>
+</head>
+<body class="mediawiki ltr sitedir-ltr ns-0 ns-subject page-Programming_OpenGL_in_Linux_GLX_and_Xlib rootpage-Programming_OpenGL_in_Linux_GLX_and_Xlib skin-vector action-view">
+		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main">
+			<a id="top"></a>
+
+						<div class="mw-indicators">
+</div>
+			<h1 id="firstHeading" class="firstHeading" lang="en">Programming OpenGL in Linux: GLX and Xlib</h1>
+									<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From OpenGL Wiki</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="#mw-head">navigation</a>, 					<a href="#p-search">search</a>
+				</div>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr">
+<div style='width:728px;margin-left: auto;margin-right:auto;'>
+<script type='text/javascript'><!--// <![CDATA[
+   OA_show(1);
+// ]]> --></script>
+</div>
+<p>Xlib is a library which provides functions for applications running under the X Window System (also referred to as <i>X</i>). This includes window management as well as event handling. X is a network-oriented system: An application which is running on computer <i>A</i> can send its graphical output to computer <i>B</i>, which is located somewhere else in the network (the <i>network</i> can be a LAN as well as the internet), and can receive events like keyboard or mouse input from computer <i>B</i>. This requires that a program called the "X-Server" is running on both computers. In Linux, the X-server is started with the command <i>startx</i>. You will most probably not have to start the X-server manually, because most Linux Distributions will set up the system to automatically start X after booting.</p>
+<p>In the following, a small program framework will be developed, which uses the GLX extension to the X windows system. Only little knowledge of X will be needed; for a comprehensive introduction to X the "Xlib Programming Manual" by Adrian Nye can be recommended.</p>
+<p>The program starts with the inclusion of the header files:</p>
+<pre>
+#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+#include&lt;X11/X.h&gt;
+#include&lt;X11/Xlib.h&gt;
+#include&lt;GL/gl.h&gt;
+#include&lt;GL/glx.h&gt;
+#include&lt;GL/glu.h&gt;
+</pre>
+<p><i>stdio.h</i> and <i>stdlib.h</i> are included because the functions <i>printf()</i> and <i>exit()</i> will be used. <i>X11/X.h</i> and <i>GL/gl.h</i> are not necessarily needed in the code, because they will be included by <i>X11/Xlib.h</i> and <i>GL/glx.h</i> automatically. They are mentioned for completeness.</p>
+<p>We will need the following variables:</p>
+<pre>
+Display                 *dpy;
+Window                  root;
+GLint                   att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+XVisualInfo             *vi;
+Colormap                cmap;
+XSetWindowAttributes    swa;
+Window                  win;
+GLXContext              glc;
+XWindowAttributes       gwa;
+XEvent                  xev;
+</pre>
+<p>Their purpose will be explained below. Since the program should somehow be related to OpenGL, we create a function which uses OpenGL to display something. What about...a quad? With different colors, maybe at each vertex?</p>
+<pre>
+void DrawAQuad() {
+ glClearColor(1.0, 1.0, 1.0, 1.0);
+ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+ glMatrixMode(GL_PROJECTION);
+ glLoadIdentity();
+ glOrtho(-1., 1., -1., 1., 1., 20.);
+
+ glMatrixMode(GL_MODELVIEW);
+ glLoadIdentity();
+ gluLookAt(0., 0., 10., 0., 0., 0., 0., 1., 0.);
+
+ glBegin(GL_QUADS);
+  glColor3f(1., 0., 0.); glVertex3f(-.75, -.75, 0.);
+  glColor3f(0., 1., 0.); glVertex3f( .75, -.75, 0.);
+  glColor3f(0., 0., 1.); glVertex3f( .75,  .75, 0.);
+  glColor3f(1., 1., 0.); glVertex3f(-.75,  .75, 0.);
+ glEnd();
+} 
+</pre>
+<p>Afterwards, we define the main program and the first call to Xlib.</p>
+<pre>
+int main(int argc, char *argv[]) {
+
+ dpy = XOpenDisplay(NULL);
+ 
+ if(dpy == NULL) {
+        printf("\n\tcannot connect to X server\n\n");
+        exit(0);
+ }
+</pre>
+<p>The argument to <i>XOpenDisplay()</i> is NULL. This means the graphical output will be sent to the computer on which it is executed.</p>
+<p>Next, a handle to the root window is needed.</p>
+<pre>
+root = DefaultRootWindow(dpy);
+</pre>
+<p>The root window is the "desktop background" window.</p>
+<p>Before we continue, we have to think about what OpenGL capabilities the program needs: The color depth, depth buffer and/or double buffer, stencil buffer etc. Remember the variable att[] (visual attributes) we defined at the beginning: The value <i>GLX_RGBA</i> tells GLX that the color depth shall be true color. The depth buffer shall be 24 bits deep, and a double buffer shall be used. The list is terminated by the value <i>None</i>. More possible options can be found in <i>GL/glx.h</i>. If you want to know about the capabilities that your graphics adapter provides, open a shell and type <i>glxinfo</i>. You will get information about your OpenGL driver and which extensions it supports. At the end of the output all provided visuals are listed, with different properties concerning color depth, depth/double/stencil buffer etc. To select a visual which matches our needs, we call</p>
+<pre>
+vi = glXChooseVisual(dpy, 0, att);
+
+if(vi == NULL) {
+        printf("\n\tno appropriate visual found\n\n");
+        exit(0);
+} 
+else {
+        printf("\n\tvisual %p selected\n", (void *)vi-&gt;visualid); /* %p creates hexadecimal output like in glxinfo */
+}
+</pre>
+<p>If <i>glXChooseVisual</i> returns with success, the visual's id will be output. If NULL is returned, there is no visual that fulfills your needs. In that case, check the output of <i>glxinfo</i> again. Maybe you have to use a different depth buffer size (<i>GLX_DEPTH_SIZE, 16</i> instead of <i>GLX_DEPTH_SIZE, 24</i>), or you could even have to remove the <i>GLX_DEPTH_SIZE</i> (or the <i>GLX_DOUBLEBUFFER</i>) entry. This should be considered especially if you want to create programs not only for your computer, but for other ones: You should code your program in a way that it can check a list of different combinations of visual attributes, because the capabilities depend heavily on the hardware.</p>
+<p>Now we create a Colormap for the window:</p>
+<pre>
+cmap = XCreateColormap(dpy, root, vi-&gt;visual, AllocNone);
+</pre>
+<p>Then, a structure of the type <i>XSetWindowAttributes</i> has to be initialized. The complete structure definition can be found in <i>X11/Xlib.h</i>, we need only 2 fields to be filled with values:</p>
+<pre>
+ swa.colormap = cmap;
+ swa.event_mask = ExposureMask | KeyPressMask;
+</pre>
+<p>This tells the X server that the colormap we created before shall be used for the window, and the window shall respond to <i>Exposure</i> and <i>KeyPress</i> events (this will be explained later). At this point, the window can be created:</p>
+<pre>
+win = XCreateWindow(dpy, root, 0, 0, 600, 600, 0, vi-&gt;depth, InputOutput, vi-&gt;visual, CWColormap | CWEventMask, &amp;swa);
+</pre>
+<p>The arguments are&#160;: The display pointer (dpy), which determines on which display the window shall be created. It is indeed possible to call <i>XOpenDisplay</i> twice (or more often) within a program, each time getting a new Display pointer. This allows the program to send graphical output not only to the local computer, but as well to a remote one.</p>
+<p>The handle of the root window is passed as the parent window. Each window- except the root window- has a parent; a window whose parent is the root window is often called top-level window. top-level windows have decorations (title bar, minimize-/maximize-button etc.), which are provided by the window-manager (in linux there are quite a lot of different window managers. some make your windows look like you are running win95 or mac os).</p>
+<p>The initial x-/y-position for the window is (0/0). The initial window position always refers to the parent window (which is the root window here). It should be mentioned that these values are ignored by most windows managers, which means that top-level windows maybe placed somewhere else on the desktop. But if you create a child window within a top-level window, these values are used.</p>
+<p>The next values are window width and height (600x600 pixels).</p>
+<p>The border width is set to 0, like the initial window position, it is meaningless for top-level windows, too.</p>
+<p>Then comes the depth, which is defined in the XVisualInfo structure *vi.</p>
+<p>The window type is InputOutput. There are other types, but you will probably never need them.</p>
+<p>The next parameter is a bitwise-OR of the values CWColormap and CWEventMask. This tells the X server which fields of the XSetWindowAttributes structure swa were filled by the program and should be taken into account when creating the window. Finally, a pointer to the structure itself is passed.</p>
+<p><i>XCreateWindow</i> returns a window id (which is actually just a long int). Now we make the window appear</p>
+<pre>
+ XMapWindow(dpy, win);
+</pre>
+<p>and change the string in the title bar:</p>
+<pre>
+XStoreName(dpy, win, "VERY SIMPLE APPLICATION");
+</pre>
+<p>One thing is still missing: Since we want to display 3D things with OpenGL, we have to create a GL context and bind it to the window</p>
+<pre>
+ glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
+ glXMakeCurrent(dpy, win, glc);
+</pre>
+<p>The last parameter decides if direct rendering is enabled. If you want to send the graphical output via network, you have to set it to GL_FALSE. If your application puts its output to the computer you are sitting in front of, use GL_TRUE. Note that some capabilities like vertex buffer objects can only be used with a direct gl context (GL_TRUE).</p>
+<p>After creating the context, it is made current to our top-level window.</p>
+<p>Since we wanted to use depth-buffering (using <i>GLX_DEPTH_SIZE</i>), we should enable the depth test:</p>
+<pre>
+glEnable(GL_DEPTH_TEST); 
+</pre>
+<p>Remember how we decided which events our application should listen to by setting the <i>swa.event_mask</i> field? Now we have to make the application listen:</p>
+<pre>
+ while(1) {
+        XNextEvent(dpy, &amp;xev);
+        
+        if(xev.type == Expose) {
+                XGetWindowAttributes(dpy, win, &amp;gwa);
+                glViewport(0, 0, gwa.width, gwa.height);
+                DrawAQuad(); 
+                glXSwapBuffers(dpy, win);
+        }
+                
+        else if(xev.type == KeyPress) {
+                glXMakeCurrent(dpy, None, NULL);
+                glXDestroyContext(dpy, glc);
+                XDestroyWindow(dpy, win);
+                XCloseDisplay(dpy);
+                exit(0);
+        }
+    } /* this closes while(1) { */
+} /* this is the } which closes int main(int argc, char *argv[]) { */
+</pre>
+<p>With <i>while(1)</i> an infinite loop is started. In this loop, <i>XNextEvent</i> is called. This function blocks program execution until one of the events that we allowed (with <i>ExposureMask</i> and <i>KeyPressMask</i> in the XSetWindowAttributes structure) occurs. Note that the program consumes very little cpu time while waiting for the next event.</p>
+<p>If an event is received, the XEvent structure <i>xev</i> is filled with information. Since we permitted two kinds of events, we have to check what event it is (with <i>xev.type == ...</i>). In case it is an Exposure Event, we get information about the current window size (<i>XGetWindowAttributes</i>) and resize the viewport, then DrawAQuad and finally swap the buffers (remember that we did choose a double-buffered visual).</p>
+<p>Still you wonder what an Exposure Event is: On the desktop, you usually have many windows overlapping each other. If a part of a window- which was occluded by another window before- appears back on the screen, because the window by which it was occluded is minimized, moved or closed, such an event is generated. Another reason for an Exposure Event could be that a window is being resized. In short terms: Exposure Events are generated when the system <i>thinks</i> that the content of a window should be updated.</p>
+<p>If a key is pressed (<i>xev.type == KeyPress</i>), the program is terminated. To make it in a clean way, the GL context binding to the window is released (<i>glXMakeCurrent(dpy, None, NULL);</i>), and the GL context is destroyed. Then we kill the window, close the display and exit the program.</p>
+<p>You may have noted one thing: We selected <i>swa.event_mask = ExposureMask | KeyPressMask</i>. In the event loop we checked for <i>xev.type == KeyPress</i>, but for <i>xev.type == Expose</i> instead of <i>xev.type == Exposure</i>. The event masks do not always correspond to the event names. You can check this in <i>X11/X.h</i>. Or buy the <i>Xlib Programming Manual</i>...</p>
+<p><br />
+Now we put all the stuff together:</p>
+<pre>
+// -- Written in C -- //
+
+#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+#include&lt;X11/X.h&gt;
+#include&lt;X11/Xlib.h&gt;
+#include&lt;GL/gl.h&gt;
+#include&lt;GL/glx.h&gt;
+#include&lt;GL/glu.h&gt;
+
+Display                 *dpy;
+Window                  root;
+GLint                   att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+XVisualInfo             *vi;
+Colormap                cmap;
+XSetWindowAttributes    swa;
+Window                  win;
+GLXContext              glc;
+XWindowAttributes       gwa;
+XEvent                  xev;
+
+void DrawAQuad() {
+ glClearColor(1.0, 1.0, 1.0, 1.0);
+ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+ glMatrixMode(GL_PROJECTION);
+ glLoadIdentity();
+ glOrtho(-1., 1., -1., 1., 1., 20.);
+
+ glMatrixMode(GL_MODELVIEW);
+ glLoadIdentity();
+ gluLookAt(0., 0., 10., 0., 0., 0., 0., 1., 0.);
+
+ glBegin(GL_QUADS);
+  glColor3f(1., 0., 0.); glVertex3f(-.75, -.75, 0.);
+  glColor3f(0., 1., 0.); glVertex3f( .75, -.75, 0.);
+  glColor3f(0., 0., 1.); glVertex3f( .75,  .75, 0.);
+  glColor3f(1., 1., 0.); glVertex3f(-.75,  .75, 0.);
+ glEnd();
+} 
+ 
+int main(int argc, char *argv[]) {
+
+ dpy = XOpenDisplay(NULL);
+ 
+ if(dpy == NULL) {
+        printf("\n\tcannot connect to X server\n\n");
+        exit(0);
+ }
+        
+ root = DefaultRootWindow(dpy);
+
+ vi = glXChooseVisual(dpy, 0, att);
+
+ if(vi == NULL) {
+        printf("\n\tno appropriate visual found\n\n");
+        exit(0);
+ } 
+ else {
+        printf("\n\tvisual %p selected\n", (void *)vi-&gt;visualid); /* %p creates hexadecimal output like in glxinfo */
+ }
+
+
+ cmap = XCreateColormap(dpy, root, vi-&gt;visual, AllocNone);
+
+ swa.colormap = cmap;
+ swa.event_mask = ExposureMask | KeyPressMask;
+ 
+ win = XCreateWindow(dpy, root, 0, 0, 600, 600, 0, vi-&gt;depth, InputOutput, vi-&gt;visual, CWColormap | CWEventMask, &amp;swa);
+
+ XMapWindow(dpy, win);
+ XStoreName(dpy, win, "VERY SIMPLE APPLICATION");
+ 
+ glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
+ glXMakeCurrent(dpy, win, glc);
+ 
+ glEnable(GL_DEPTH_TEST); 
+ 
+ while(1) {
+        XNextEvent(dpy, &amp;xev);
+        
+        if(xev.type == Expose) {
+                XGetWindowAttributes(dpy, win, &amp;gwa);
+                glViewport(0, 0, gwa.width, gwa.height);
+                DrawAQuad(); 
+                glXSwapBuffers(dpy, win);
+        }
+                
+        else if(xev.type == KeyPress) {
+                glXMakeCurrent(dpy, None, NULL);
+                glXDestroyContext(dpy, glc);
+                XDestroyWindow(dpy, win);
+                XCloseDisplay(dpy);
+                exit(0);
+        }
+    } /* this closes while(1) { */
+} /* this is the } which closes int main(int argc, char *argv[]) { */
+</pre>
+<p>This program is written in plain C (although i, personally, prefer C++ syntax). Save it as quad.c, and compile it with</p>
+<pre>
+gcc -o quad quad.c -lX11 -lGL -lGLU
+</pre>
+<p>The <i>-l</i> flags refer to the Xlib, the OpenGL lib and the GLU lib. An executable named <i>quad</i> is created.</p>
+
+<!-- 
+NewPP limit report
+Cached time: 20170303170326
+Cache expiry: 1209600
+Dynamic content: false
+CPU time usage: 0.028 seconds
+Real time usage: 0.028 seconds
+Preprocessor visited node count: 49/1000000
+Preprocessor generated node count: 324/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->
+
+<!-- Saved in parser cache with key khronos_opengl_wiki-mw_:pcache:idhash:1318-0!*!*!*!*!*!* and timestamp 20170303170326 and revision id 11419
+ -->
+</div>					<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="http://www.khronos.org/opengl/wiki_opengl/index.php?title=Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;oldid=11419">http://www.khronos.org/opengl/wiki_opengl/index.php?title=Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;oldid=11419</a>"					</div>
+				<div id="catlinks" class="catlinks" data-mw="interface"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="/opengl/wiki/Special:Categories" title="Special:Categories">Category</a>: <ul><li><a href="/opengl/wiki_opengl/index.php?title=Category:Linux&amp;action=edit&amp;redlink=1" class="new" title="Category:Linux (page does not exist)">Linux</a></li></ul></div></div>				<div class="visualClear"></div>
+							</div>
+		</div>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-createaccount"><a href="/opengl/wiki_opengl/index.php?title=Special:CreateAccount&amp;returnto=Programming+OpenGL+in+Linux%3A+GLX+and+Xlib" title="You are encouraged to create an account and log in; however, it is not mandatory">Create account</a></li><li id="pt-login"><a href="/opengl/wiki_opengl/index.php?title=Special:UserLogin&amp;returnto=Programming+OpenGL+in+Linux%3A+GLX+and+Xlib" title="You are encouraged to log in; however, it is not mandatory [o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+															<li  id="ca-nstab-main" class="selected"><span><a href="/opengl/wiki/Programming_OpenGL_in_Linux:_GLX_and_Xlib"  title="View the content page [c]" accesskey="c">Page</a></span></li>
+															<li  id="ca-talk" class="new"><span><a href="/opengl/wiki_opengl/index.php?title=Talk:Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;action=edit&amp;redlink=1"  title="Discussion about the content page [t]" accesskey="t" rel="discussion">Discussion</a></span></li>
+													</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<h3 id="p-variants-label">
+							<span>Variants</span><a href="#"></a>
+						</h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+															<li id="ca-view" class="selected"><span><a href="/opengl/wiki/Programming_OpenGL_in_Linux:_GLX_and_Xlib" >Read</a></span></li>
+															<li id="ca-viewsource"><span><a href="/opengl/wiki_opengl/index.php?title=Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;action=edit"  title="This page is protected.&#10;You can view its source [e]" accesskey="e">View source</a></span></li>
+															<li id="ca-history" class="collapsible"><span><a href="/opengl/wiki_opengl/index.php?title=Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;action=history"  title="Past revisions of this page [h]" accesskey="h">View history</a></span></li>
+													</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label">
+						<h3 id="p-cactions-label"><span>More</span><a href="#"></a></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+
+						<form action="/opengl/wiki_opengl/index.php" id="searchform">
+							<div>
+							<input type="search" name="search" placeholder="Search" title="Search OpenGL Wiki [f]" accesskey="f" id="searchInput"/><input type="hidden" value="Special:Search" name="title"/><input type="submit" name="fulltext" value="Search" title="Search the pages for this text" id="mw-searchButton" class="searchButton mw-fallbackSearchButton"/><input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton"/>							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="/opengl/wiki/Main_Page"  title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id='p-navigation' aria-labelledby='p-navigation-label'>
+			<h3 id='p-navigation-label'>Navigation</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-mainpage"><a href="/opengl/wiki/Main_Page" title="Visit the main page [z]" accesskey="z">Main Page</a></li><li id="n-OpenGL-News"><a href="http://opengl.org/" rel="nofollow">OpenGL News</a></li><li id="n-OpenGL-Forums"><a href="http://opengl.org/discussion_boards" rel="nofollow">OpenGL Forums</a></li><li id="n-recentchanges"><a href="/opengl/wiki/Special:RecentChanges" title="A list of recent changes in the wiki [r]" accesskey="r">Recent changes</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id='p-Help' aria-labelledby='p-Help-label'>
+			<h3 id='p-Help-label'>Help</h3>
+
+			<div class="body">
+									<ul>
+						<li id="n-Privacy-Policy"><a href="https://www.khronos.org/legal/privacy" rel="nofollow">Privacy Policy</a></li><li id="n-About-OpenGL"><a href="https://www.opengl.org/about/" rel="nofollow">About OpenGL</a></li><li id="n-Contact-Us"><a href="https://www.khronos.org/about/contact/" rel="nofollow">Contact Us</a></li><li id="n-Help-Editing"><a href="https://www.mediawiki.org/wiki/Help:Contents">Help Editing</a></li>					</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id='p-tb' aria-labelledby='p-tb-label'>
+			<h3 id='p-tb-label'>Tools</h3>
+
+			<div class="body">
+									<ul>
+						<li id="t-whatlinkshere"><a href="/opengl/wiki/Special:WhatLinksHere/Programming_OpenGL_in_Linux:_GLX_and_Xlib" title="A list of all wiki pages that link here [j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="/opengl/wiki/Special:RecentChangesLinked/Programming_OpenGL_in_Linux:_GLX_and_Xlib" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li><li id="t-specialpages"><a href="/opengl/wiki/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a></li><li id="t-print"><a href="/opengl/wiki_opengl/index.php?title=Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;printable=yes" rel="alternate" title="Printable version of this page [p]" accesskey="p">Printable version</a></li><li id="t-permalink"><a href="/opengl/wiki_opengl/index.php?title=Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;oldid=11419" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="/opengl/wiki_opengl/index.php?title=Programming_OpenGL_in_Linux:_GLX_and_Xlib&amp;action=info" title="More information about this page">Page information</a></li><li id="t-cite"><a href="/opengl/wiki_opengl/index.php?title=Special:CiteThisPage&amp;page=Programming_OpenGL_in_Linux%3A_GLX_and_Xlib&amp;id=11419" title="Information on how to cite this page">Cite this page</a></li>					</ul>
+							</div>
+		</div>
+				</div>
+		</div>
+		<div id="footer" role="contentinfo">
+							<ul id="footer-info">
+											<li id="footer-info-lastmod"> This page was last modified on 10 January 2014, at 00:31.</li>
+									</ul>
+									<div style="clear:both"></div>
+		</div>
+		<script>(window.RLQ=window.RLQ||[]).push(function(){mw.loader.state({"user":"ready","user.groups":"ready"});mw.loader.load(["mediawiki.action.view.postEdit","site","mediawiki.user","mediawiki.hidpi","mediawiki.page.ready","mediawiki.searchSuggest"]);});</script><script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-1759693-1', 'auto');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script>
+<script>(window.RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgBackendResponseTime":204});});</script>
+	</body>
+<!-- Cached 20170303170326 -->
+</html>
