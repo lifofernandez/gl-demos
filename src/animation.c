@@ -38,7 +38,7 @@ void DrawCube(float size,float posx, float posy, float posz) {
 
  glBegin(GL_QUADS);
 
-  glColor3f(1.0, 1.0, 1.0);
+  glColor3f(0.0, 0.0, 0.0);                   
   glVertex3f(-size+posx, -size+posy, -size+posz);
   glVertex3f( size+posx, -size+posy, -size+posz);
   glVertex3f( size+posx,  size+posy, -size+posz);
@@ -50,7 +50,7 @@ void DrawCube(float size,float posx, float posy, float posz) {
   glVertex3f(-size+posx,  size+posy,  size+posz);
                                               
                                               
-  glColor3f(0.0, 0.0, 0.0);                   
+  glColor3f(1.0, 1.0, 1.0);
   glVertex3f(-size+posx, -size+posy, -size+posz);
   glVertex3f(-size+posx, -size+posy,  size+posz);
   glVertex3f(-size+posx,  size+posy,  size+posz);
@@ -231,6 +231,7 @@ void SetupGL() {
  glXMakeCurrent(dpy, win, glc);
  glEnable(GL_DEPTH_TEST);
  glClearColor(1.00, 1.00,1.00, 0.50);
+ glClearColor(0.00, 0.00,0.00, 1);
     /////////////////////////////////////////////////
     //     FIND A FONT                             //
     /////////////////////////////////////////////////

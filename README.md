@@ -14,6 +14,16 @@ pacman -S base-devel glu
 
 ## Compilar con GCC
 ```bash
-gcc -o  bin/animation src/animation.c -lX11 -lGL -lGLU -std=c99 && ./bin/animation
+gcc -o  bin/animation src/animation.c -lX11 -lGL -lGLU -std=c99 
 ```
-./utils/capture out/output.mp4
+
+## Ejecurtar aplicacion 
+```bash
+chmod +x bin/animacion
+./bin/animation
+```
+
+## Capturar desktop 
+```bash
+./utils/capture out/ARCHIVO.mov
+```
