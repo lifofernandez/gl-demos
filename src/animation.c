@@ -30,7 +30,7 @@ struct timeval          tv, tv0;
 int                     Frame = 1, FramesPerFPS;
 
 GLfloat                 rotation_matrix[16];
-float                   rot_z_vel = 100.0, rot_y_vel = 50.0;
+float                   rot_z_vel = 10.0, rot_y_vel = 10.0;
 //////////////////////////////////////////////////////////////////////////////////
 //                              DRAW A CUBE                                     //
 //////////////////////////////////////////////////////////////////////////////////
@@ -197,7 +197,20 @@ void CreateWindow() {
         
  swa.event_mask = KeyPressMask;
  swa.colormap   = cmap;
- win = XCreateWindow(dpy, root, 0, 0, 700, 700, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
+ win = XCreateWindow(
+  dpy, 
+  root, 
+  0,
+  0, 
+  700,
+  700,
+  0,
+  vi->depth,
+  InputOutput,
+  vi->visual,
+  CWColormap | CWEventMask,
+  &swa
+);
  XStoreName(dpy, win, "OpenGL Animation");
  XMapWindow(dpy, win);
 }
